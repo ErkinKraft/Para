@@ -1,7 +1,3 @@
-import socket
-import sys
-import threading
-from typing import Optional
 """
 ███████╗██████╗░██╗░░██╗██╗███╗░░██╗██╗░░██╗██████╗░░█████╗░███████╗████████╗
 ██╔════╝██╔══██╗██║░██╔╝██║████╗░██║██║░██╔╝██╔══██╗██╔══██╗██╔════╝╚══██╔══╝
@@ -9,6 +5,10 @@ from typing import Optional
 ██╔══╝░░██╔══██╗██╔═██╗░██║██║╚████║██╔═██╗░██╔══██╗██╔══██║██╔══╝░░░░░██║░░░
 ███████╗██║░░██║██║░╚██╗██║██║░╚███║██║░╚██╗██║░░██║██║░░██║██║░░░░░░░░██║░░░
 ╚══════╝╚═╝░░╚═╝╚═╝░░╚═╝╚═╝╚═╝░░╚══╝╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░░░░░░░╚═╝░░░"""
+import socket
+import sys
+import threading
+from typing import Optional
 from pynput import keyboard
 
 from common import JsonLineReader
@@ -20,6 +20,7 @@ class KeyboardReceiver:
 		self._reader = JsonLineReader(conn)
 		self._controller = keyboard.Controller()
 		self._stopped = threading.Event()
+		self._remote_requested_close = False
 
 	def _apply_event(self, typ: int, kind: str, value: str) -> None:
 		try:
@@ -41,6 +42,10 @@ class KeyboardReceiver:
 		while not self._stopped.is_set():
 			msg = self._reader.read_one()
 			if msg is None:
+				break
+		
+			if isinstance(msg, dict) and msg.get("bye") == 1:
+				self._remote_requested_close = True
 				break
 			typ = msg.get("t")
 			kind = msg.get("k")

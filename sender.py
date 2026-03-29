@@ -1,7 +1,3 @@
-import socket
-import sys
-import threading
-from typing import Optional
 """
 ███████╗██████╗░██╗░░██╗██╗███╗░░██╗██╗░░██╗██████╗░░█████╗░███████╗████████╗
 ██╔════╝██╔══██╗██║░██╔╝██║████╗░██║██║░██╔╝██╔══██╗██╔══██╗██╔════╝╚══██╔══╝
@@ -9,9 +5,13 @@ from typing import Optional
 ██╔══╝░░██╔══██╗██╔═██╗░██║██║╚████║██╔═██╗░██╔══██╗██╔══██║██╔══╝░░░░░██║░░░
 ███████╗██║░░██║██║░╚██╗██║██║░╚███║██║░╚██╗██║░░██║██║░░██║██║░░░░░░░░██║░░░
 ╚══════╝╚═╝░░╚═╝╚═╝░░╚═╝╚═╝╚═╝░░╚══╝╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░░░░░░░╚═╝░░░"""
+import socket
+import sys
+import threading
+from typing import Optional
 from pynput import keyboard
 
-from common import send_json_line
+from common import send_json_line, JsonLineReader
 
 
 class KeyboardSender:
@@ -19,6 +19,7 @@ class KeyboardSender:
 		self._conn = conn
 		self._listener: Optional[keyboard.Listener] = None
 		self._stopped = threading.Event()
+		self._watch_thread: Optional[threading.Thread] = None
 
 	def _on_press(self, key: keyboard.Key | keyboard.KeyCode) -> None:
 		try:
@@ -39,11 +40,25 @@ class KeyboardSender:
 			self.stop()
 
 	def start(self) -> None:
+
+		self._watch_thread = threading.Thread(target=self._watch_remote_close, daemon=True)
+		self._watch_thread.start()
 		self._listener = keyboard.Listener(on_press=self._on_press, on_release=self._on_release, suppress=False)
 		self._listener.start()
 		try:
 			self._listener.join()
 		finally:
+			self.stop()
+
+	def _watch_remote_close(self) -> None:
+		try:
+			reader = JsonLineReader(self._conn)
+			msg = reader.read_one()
+		
+			if msg is None or (isinstance(msg, dict) and msg.get("bye") == 1):
+				self.stop()
+		except Exception:
+			
 			self.stop()
 
 	def stop(self) -> None:

@@ -38,7 +38,6 @@ if "%choice%"=="1" (
     echo Запускаю пару...
     timeout /t 2 >nul
     python main.py
-    start "" python main.py
 ) else if "%choice%"=="2" (
     echo.
     echo Запускаю install.bat...
