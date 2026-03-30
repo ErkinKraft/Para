@@ -77,6 +77,15 @@
 - `receiver.py` - приём событий и эмуляция клавиш на целевой машине
 - `common.py` - утилиты: низколатентные сокеты, JSONL-протокол
 
+## Обратная связь
+
+Если вы нашли баг или у вас есть предложения по улучшению, пожалуйста, не стесняйтесь обращаться:
+
+- **Telegram:** [@ErkinKraft](https://t.me/StelsATVgroup)
+- **Discord:** erkinkraft
+- **VK:** [vk.com/erkinkraft](https://vk.com/erkinkraft)
+- **Gmail:** erkinkraft@gmail.com
+- 
 ### Лицензия
 [MIT](https://github.com/ErkinKraft/Para/blob/main/LICENSE)
 
